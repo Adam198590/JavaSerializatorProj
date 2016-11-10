@@ -42,7 +42,7 @@ public class SocketChannelUtil {
     }
 
 //====================================UTILS=======================================================
-    public static ByteBuffer putObjectToByteBuffer(ByteBufferPacket packet) {
+    public ByteBuffer putObjectToByteBuffer(ByteBufferPacket packet) {
         int completeSize = HeaderHolder.HEADER_SIZE + packet.size();
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(completeSize);

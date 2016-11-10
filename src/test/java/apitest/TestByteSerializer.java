@@ -22,9 +22,7 @@ public class TestByteSerializer {
     @Test
     public void testSerialization() throws Exception {
         ByteBufferPacket packet = buildCompleteTestPacket();
-
-        ByteBuffer loginPacketBuffer =
-                SocketChannelUtil.putObjectToByteBuffer(packet);
+        ByteBuffer loginPacketBuffer = channelUtil.putObjectToByteBuffer(packet);
 
         Assert.assertEquals(16, loginPacketBuffer.get(3));
         Assert.assertEquals(100, loginPacketBuffer.get(7));

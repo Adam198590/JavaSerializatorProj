@@ -1,14 +1,25 @@
-group 'com.java.serializator.group'
+group 'java.serializator.group'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'application'
 
-sourceCompatibility = 1.5
+mainClassName = "entrypoint.Main"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'
+    testCompile group: 'junit', name: 'junit-dep', version: '4.10'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '1.9.+'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.9'
 }

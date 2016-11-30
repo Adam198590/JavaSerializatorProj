@@ -1,22 +1,26 @@
 package util;
 
-import api.ByteBufferSerializableObject;
-import enums.PacketType;
-import impl.ByteBufferPacket;
-import impl.gen.PacketTypeStorage;
-import impl.gen.model.HeaderHolder;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Optional;
-import java.util.function.Supplier;
+
+import api.ByteBufferSerializableObject;
+import enums.PacketType;
+import impl.ByteBufferPacket;
+import impl.gen.model.HeaderHolder;
+import service.ByteBufferService;
+import service.PacketTypeService;
 
 //TODO - remove some serialize and deserialize methods, depends on what we need on current side (client/server).
-//TODO - add metadata to specification.
 
+/**
+ * Utility for read/write packets  from/to channel.
+ */
 public class SocketChannelUtil {
+    private PacketTypeService packetTypeService = new PacketTypeService();
+    private ByteBufferService byteBufferService = new ByteBufferService();
 
     public SocketChannel getSocketChannel(String ip, int port) throws IOException {
         SocketChannel channel = SocketChannel.open();
@@ -34,45 +38,43 @@ public class SocketChannelUtil {
     }
 
     public ByteBufferSerializableObject readPacket(SocketChannel channel) throws Exception {
-        ByteBuffer completeBuffer = getByteBufferFromStream(channel, HeaderHolder.HEADER_SIZE);
-        HeaderHolder headerHolder = getHeaderFromByteBuffer(completeBuffer);
-        ByteBuffer bodyBuffer = getByteBufferFromStream(channel, headerHolder.size());
+        ByteBuffer completeBuffer = getByteBufferFromChannel(channel);
 
-        return getPacketBodyFromByteBuffer(bodyBuffer, headerHolder.packetType);
+        HeaderHolder headerHolderObject = getHeaderFromByteBuffer(completeBuffer);
+
+        return getPacketBodyFromByteBuffer(completeBuffer, headerHolderObject.packetType);
     }
 
 //====================================UTILS=======================================================
     public ByteBuffer putObjectToByteBuffer(ByteBufferPacket packet) {
-        int completeSize = HeaderHolder.HEADER_SIZE + packet.size();
-
-        ByteBuffer byteBuffer = ByteBuffer.allocate(completeSize);
+        ByteBuffer byteBuffer = byteBufferService.getWriteBuffer();
         packet.serialize(byteBuffer);
 
         return (ByteBuffer) byteBuffer.flip();
     }
 
-    private ByteBuffer getByteBufferFromStream(SocketChannel channel, int size) throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocate(size);
-        channel.read(buffer);
-        return (ByteBuffer) buffer.rewind();
-    }
-
-    public HeaderHolder getHeaderFromByteBuffer(ByteBuffer src) {
+    public HeaderHolder getHeaderFromByteBuffer(ByteBuffer packetBuffer) throws Exception {
         HeaderHolder headerHolder = new HeaderHolder();
-        headerHolder.deserialize(src);
+        headerHolder.deserialize(packetBuffer);
 
         return headerHolder;
     }
 
-    public ByteBufferSerializableObject getPacketBodyFromByteBuffer(ByteBuffer src, PacketType packetType) {
+    public ByteBufferSerializableObject getPacketBodyFromByteBuffer(ByteBuffer byteBuffer, PacketType packetType) {
         Optional<ByteBufferSerializableObject> oPacket = Optional.ofNullable(
-                PacketTypeStorage.packetTypes.get(packetType))
-                    .map(Supplier::get)
-                    .map(packet -> (ByteBufferSerializableObject) packet);
+                packetTypeService.getPacketInstance(packetType)).
+                map(packet -> packet);
 
         ByteBufferSerializableObject packet = oPacket.orElseThrow(IllegalArgumentException::new);
-        packet.deserialize(src);
+        packet.deserialize(byteBuffer);
 
         return packet;
+    }
+
+    private ByteBuffer getByteBufferFromChannel(SocketChannel channel) throws Exception {
+        ByteBuffer buffer = byteBufferService.getReadBuffer();
+        channel.read(buffer);
+
+        return (ByteBuffer) buffer.rewind();
     }
 }

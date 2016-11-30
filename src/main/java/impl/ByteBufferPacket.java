@@ -1,10 +1,13 @@
 package impl;
 
+import java.nio.ByteBuffer;
+
 import api.ByteBufferSerializableObject;
 import impl.gen.model.HeaderHolder;
 
-import java.nio.ByteBuffer;
-
+/**
+ * Complete packet, contains useful data itself and metadata which describes it.
+ */
 public class ByteBufferPacket implements ByteBufferSerializableObject {
     private HeaderHolder headerHolder;
     private final ByteBufferSerializableObject body;
@@ -26,8 +29,12 @@ public class ByteBufferPacket implements ByteBufferSerializableObject {
         this.body.deserialize(src);
     }
 
+	/**
+     * The size of packet which contains a body.
+     * @return body size
+     */
     @Override
     public int size() {
-        return headerHolder.size();
+        return body.size();
     }
 }

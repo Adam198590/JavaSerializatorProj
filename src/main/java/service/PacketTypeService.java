@@ -1,4 +1,4 @@
-package impl.gen;
+package service;
 
 import api.ByteBufferSerializableObject;
 import enums.PacketType;
@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Auto generated storage
+ * Service with auto generated storage which supplies a packet instance.
  */
-public class PacketTypeStorage {
+public final class PacketTypeService {
 
-    public static Map<PacketType, Supplier<? extends ByteBufferSerializableObject>> packetTypes;
+    private static final Map<PacketType, Supplier<? extends ByteBufferSerializableObject>> packetTypes;
 
     static {
         packetTypes = new EnumMap<>(PacketType.class);
@@ -21,5 +21,9 @@ public class PacketTypeStorage {
         //=================here we add new packets==================
         packetTypes.put(PacketType.LOGIN, LoginBody::new);
         //==========================================================
+    }
+
+    public ByteBufferSerializableObject getPacketInstance(PacketType packetType) {
+        return packetTypes.get(packetType).get();
     }
 }

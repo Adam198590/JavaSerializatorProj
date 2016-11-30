@@ -1,5 +1,7 @@
 package apitest;
 
+import java.nio.ByteBuffer;
+
 import api.ByteBufferSerializableObject;
 import enums.PacketType;
 import impl.ByteBufferPacket;
@@ -8,15 +10,16 @@ import impl.gen.model.UserData;
 import impl.gen.packet.LoginBody;
 import org.junit.Assert;
 import org.junit.Test;
+import service.ByteBufferService;
 import util.ByteUtil;
 import util.SocketChannelUtil;
-
-import java.nio.ByteBuffer;
 
 import static org.mockito.Mockito.spy;
 
 public class TestByteSerializer {
+    private ByteBufferService byteBufferService = new ByteBufferService();
     private SocketChannelUtil channelUtil = spy(new SocketChannelUtil());
+
     private final int TEST_BODY_SIZE = 16;
 
     @Test
@@ -34,10 +37,11 @@ public class TestByteSerializer {
 
     @Test
     public void testHeaderDeserialization() throws Exception {
-        ByteBuffer headerBytesFromChannel = buildTestHeaderBuffer(TEST_BODY_SIZE);
+//        doReturn(buildTestHeaderBuffer(TEST_BODY_SIZE))
+//                .when(channelUtil).getByteBufferFromChannel(null);
 
-        HeaderHolder headerFromByteBuffer =
-                channelUtil.getHeaderFromByteBuffer(headerBytesFromChannel);
+        HeaderHolder headerFromByteBuffer = channelUtil.getHeaderFromByteBuffer(
+                buildTestHeaderBuffer(TEST_BODY_SIZE));
 
         Assert.assertEquals(headerFromByteBuffer.packetType, PacketType.LOGIN);
         Assert.assertEquals(headerFromByteBuffer.size(), TEST_BODY_SIZE);
@@ -45,17 +49,37 @@ public class TestByteSerializer {
 
     @Test
     public void testBodyDeserialization() throws Exception {
-        ByteBuffer bodyBuf = buildTestBodyBuffer(TEST_BODY_SIZE);
+//        doReturn(buildTestBodyBuffer())
+//                .when(channelUtil).getByteBufferFromChannel(null);
 
         ByteBufferSerializableObject packetBodyFromByteBuffer =
-                channelUtil.getPacketBodyFromByteBuffer(bodyBuf, PacketType.LOGIN);
+                channelUtil.getPacketBodyFromByteBuffer(buildTestBodyBuffer(), PacketType.LOGIN);
 
         Assert.assertEquals(packetBodyFromByteBuffer.size(), TEST_BODY_SIZE);
         Assert.assertEquals(((LoginBody) packetBodyFromByteBuffer).userData.uid, 123);
         Assert.assertEquals(((LoginBody) packetBodyFromByteBuffer).userData.name, "userName");
     }
 
-    private static ByteBufferPacket buildCompleteTestPacket() {
+    @Test
+    public void testHeaderAndBodyDeserialization() throws Exception {
+//        doReturn(buildTestFullPacketBuffer())
+//                .when(channelUtil).getByteBufferFromChannel(null);
+
+        ByteBuffer testFullPacketBuffer = buildTestFullPacketBuffer();
+
+        HeaderHolder headerFromByteBuffer =
+                channelUtil.getHeaderFromByteBuffer(testFullPacketBuffer);
+
+        ByteBufferSerializableObject packetBodyFromByteBuffer =
+                channelUtil.getPacketBodyFromByteBuffer(
+                        testFullPacketBuffer, headerFromByteBuffer.packetType);
+
+        Assert.assertEquals(packetBodyFromByteBuffer.size(), TEST_BODY_SIZE);
+        Assert.assertEquals(((LoginBody) packetBodyFromByteBuffer).userData.uid, 123);
+        Assert.assertEquals(((LoginBody) packetBodyFromByteBuffer).userData.name, "userName");
+    }
+
+    private ByteBufferPacket buildCompleteTestPacket() {
         UserData userData = new UserData(123, "userName");
         ByteBufferSerializableObject body = new LoginBody(userData);
         HeaderHolder headerHolder = new HeaderHolder(body.size(), PacketType.LOGIN);
@@ -64,7 +88,7 @@ public class TestByteSerializer {
     }
 
     private ByteBuffer buildTestHeaderBuffer(int bodySize) {
-        ByteBuffer headerBuf = ByteBuffer.allocate(HeaderHolder.HEADER_SIZE);
+        ByteBuffer headerBuf = byteBufferService.getReadBuffer();
         HeaderHolder headerHolder = new HeaderHolder(bodySize, PacketType.LOGIN);
         headerHolder.serialize(headerBuf);
         headerBuf.rewind();
@@ -72,12 +96,25 @@ public class TestByteSerializer {
         return headerBuf;
     }
 
-    private static ByteBuffer buildTestBodyBuffer(int bodySize) {
-        ByteBuffer bodyBuf = ByteBuffer.allocate(bodySize);
+    private ByteBuffer buildTestBodyBuffer() {
+        ByteBuffer bodyBuf = byteBufferService.getReadBuffer();
         bodyBuf.putInt(123);
         ByteUtil.putStringToByteBuffer(bodyBuf, "userName");
         bodyBuf.rewind();
 
         return bodyBuf;
+    }
+
+    private ByteBuffer buildTestFullPacketBuffer() {
+        ByteBuffer fullPacketBuf = byteBufferService.getReadBuffer();
+
+        HeaderHolder headerHolder = new HeaderHolder(TEST_BODY_SIZE, PacketType.LOGIN);
+        headerHolder.serialize(fullPacketBuf);
+
+        fullPacketBuf.putInt(123);
+        ByteUtil.putStringToByteBuffer(fullPacketBuf, "userName");
+        fullPacketBuf.rewind();
+
+        return fullPacketBuf;
     }
 }

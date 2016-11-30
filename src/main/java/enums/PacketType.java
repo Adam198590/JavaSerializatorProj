@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Stores the packet type, which can be converted into bytes together with packet body.
+ */
 public enum PacketType {
     LOGIN(100),
     UNKNOWN(-1);
@@ -26,6 +29,6 @@ public enum PacketType {
     }
 
     public static PacketType fromInt(int value) {
-        return map.getOrDefault(UNKNOWN, map.get(value));
+        return map.getOrDefault(value, UNKNOWN);
     }
 }

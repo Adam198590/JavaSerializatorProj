@@ -5,8 +5,13 @@ import enums.PacketType;
 
 import java.nio.ByteBuffer;
 
+import static config.NetworkConfig.PACKET_HEADER_SIZE_BYTES;
+
+/**
+ * Object which contains description (size/type etc..) for packet body.
+ */
 public class HeaderHolder implements ByteBufferSerializableObject {
-    public static final int HEADER_SIZE = Integer.BYTES + Integer.BYTES;
+    public static final int HEADER_SIZE = PACKET_HEADER_SIZE_BYTES;
 
     private int bodySize;
     public PacketType packetType;
@@ -33,6 +38,10 @@ public class HeaderHolder implements ByteBufferSerializableObject {
         this.packetType = PacketType.fromInt(src.getInt());
     }
 
+    /**
+     * The size of packet which contains a body.
+     * @return body size
+     */
     @Override
     public int size() {
         return bodySize;

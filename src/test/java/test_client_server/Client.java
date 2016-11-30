@@ -1,6 +1,8 @@
 package test_client_server;
 
 
+import java.nio.channels.SocketChannel;
+
 import api.ByteBufferSerializableObject;
 import enums.PacketType;
 import impl.ByteBufferPacket;
@@ -8,8 +10,6 @@ import impl.gen.model.HeaderHolder;
 import impl.gen.model.UserData;
 import impl.gen.packet.LoginBody;
 import util.SocketChannelUtil;
-
-import java.nio.channels.SocketChannel;
 
 import static test_client_server.Server.log;
 

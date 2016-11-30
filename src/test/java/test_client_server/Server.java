@@ -1,9 +1,5 @@
 package test_client_server;
 
-import api.ByteBufferSerializableObject;
-import impl.gen.packet.LoginBody;
-import util.SocketChannelUtil;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -12,6 +8,10 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
+
+import api.ByteBufferSerializableObject;
+import impl.gen.packet.LoginBody;
+import util.SocketChannelUtil;
 
 public class Server {
 
@@ -47,6 +47,8 @@ public class Server {
 
                                 System.out.println(((LoginBody) loginPacket).userData.uid);
                                 System.out.println(((LoginBody) loginPacket).userData.name);
+
+                                close(key);
                             } else if (key.isWritable()) {
                                 throw new IllegalStateException();
                             }

@@ -8,7 +8,6 @@ public class TestByteBuffer {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         String s = "sadasd";
 
-        buffer.clear();
         buffer.putInt(123);
         buffer.putInt(s.length());
         buffer.put(s.getBytes());
